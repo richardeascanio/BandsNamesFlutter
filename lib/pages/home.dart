@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:band_name_app/providers/socket_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:pie_chart/pie_chart.dart';
+
 
 import 'package:provider/provider.dart';
 import 'package:band_name_app/models/band.dart';
@@ -43,9 +45,16 @@ class _HomePageState extends State<HomePage> {
     final _socketService = Provider.of<SocketService>(context);
     return Scaffold(
       appBar: _appBar(_socketService),
-      body: ListView.builder(
-        itemCount: bands.length,
-        itemBuilder: (context, i) => _bandTitle(bands[i])
+      body: Column(
+        children: [
+          (bands.isNotEmpty) ? _showGraph() : Container(),
+          Expanded(
+            child: ListView.builder(
+              itemCount: bands.length,
+              itemBuilder: (context, i) => _bandTitle(bands[i])
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
@@ -188,5 +197,49 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  Widget _showGraph() {
+
+    Map<String, double> dataMap = new Map();
+
+    bands.forEach((band) {
+      dataMap.putIfAbsent(band.name, () => band.votes.toDouble());
+    });
+
+    final List<Color> colorList = [
+      Colors.blue[50],
+      Colors.blue[200],
+      Colors.pink[50],
+      Colors.pink[200],
+      Colors.green[50],
+      Colors.yellow[200],
+    ];
+    
+    return Container(
+      padding: EdgeInsets.only(top: 10.0),
+      width: double.infinity,
+      height: 200,
+      child: PieChart(
+        dataMap: dataMap,
+        animationDuration: Duration(milliseconds: 800),
+        chartLegendSpacing: 32,
+        chartRadius: MediaQuery.of(context).size.width / 3.2,
+        colorList: colorList,
+        initialAngleInDegree: 0,
+        chartType: ChartType.ring,
+        ringStrokeWidth: 32,
+        legendOptions: LegendOptions(
+          showLegendsInRow: false,
+          showLegends: true,
+        ),
+        chartValuesOptions: ChartValuesOptions(
+          showChartValueBackground: true,
+          showChartValues: true,
+          decimalPlaces: 0,
+          showChartValuesInPercentage: false,
+          showChartValuesOutside: false,
+        ),
+      ),
+    );
+  }
 
 }
